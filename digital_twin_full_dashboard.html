@@ -1,0 +1,564 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.sl{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-tertiary);margin-bottom:.55rem}
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:.9rem}
+.mc{background:var(--color-background-secondary);border-radius:8px;padding:.7rem .9rem}
+.mc-l{font-size:11px;color:var(--color-text-secondary);margin-bottom:3px}
+.mc-v{font-size:19px;font-weight:500;color:var(--color-text-primary)}
+.mc-s{font-size:10px;color:var(--color-text-tertiary);margin-top:1px}
+.card{background:var(--color-background-primary);border:.5px solid var(--color-border-tertiary);border-radius:12px;padding:1rem 1.1rem;margin-bottom:.85rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin-bottom:.85rem}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:500}
+.b-bl{background:#E6F1FB;color:#0C447C}
+.b-lo{background:#FAEEDA;color:#633806}
+.b-co{background:#EAF3DE;color:#27500A}
+.b-ad{background:#FAEEDA;color:#633806}
+.b-sl{background:#FAECE7;color:#712B13}
+.b-st{background:#FCEBEB;color:#791F1F}
+
+.pipe{display:flex;align-items:stretch;gap:0;margin-bottom:.85rem;overflow-x:auto}
+.ps{flex:1;min-width:80px;padding:8px 6px;text-align:center;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+.ps.active{border-color:#185FA5}
+.pa{font-size:12px;color:var(--color-text-tertiary);padding:0 2px;display:flex;align-items:center;flex-shrink:0}
+.ps-t{font-size:11px;font-weight:500}
+.ps-s{font-size:9px;margin-top:2px}
+
+.tab-bar{display:flex;gap:2px;border-bottom:.5px solid var(--color-border-tertiary);margin-bottom:.85rem}
+.tab{padding:6px 13px;font-size:12px;cursor:pointer;border-bottom:2px solid transparent;color:var(--color-text-secondary);margin-bottom:-1px}
+.tab.active{color:var(--color-text-primary);border-bottom-color:#185FA5;font-weight:500}
+.panel{display:none}.panel.active{display:block}
+
+.sr{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.sl2{font-size:12px;color:var(--color-text-secondary);min-width:95px}
+.sbw{flex:1;height:7px;background:var(--color-background-secondary);border-radius:4px;overflow:hidden}
+.sb{height:100%;border-radius:4px}
+.sv{font-size:12px;color:var(--color-text-primary);min-width:42px;text-align:right}
+
+.fi{font-size:12px;color:var(--color-text-secondary);padding:5px 0;border-bottom:.5px solid var(--color-border-tertiary)}
+.fi span{font-weight:500;color:var(--color-text-primary);float:right}
+.fi:last-child{border-bottom:none}
+
+#trackWrap{position:relative;width:100%;height:120px;border:.5px solid var(--color-border-tertiary);border-radius:8px;overflow:hidden;background:var(--color-background-secondary);margin-bottom:.85rem}
+#trackCanvas{width:100%;height:100%}
+
+.cr{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:.85rem}
+.cg{display:flex;align-items:center;gap:6px}
+.cg label{font-size:12px;color:var(--color-text-secondary);white-space:nowrap}
+.cg input[type=range]{width:80px}
+.cg span{font-size:12px;color:var(--color-text-primary);min-width:36px}
+select{font-size:12px;padding:4px 7px;border-radius:8px;border:.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)}
+button{font-size:12px;padding:5px 14px;border-radius:8px;border:.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer}
+button:hover{background:var(--color-background-secondary)}
+.btn-p{background:#185FA5;color:#fff;border-color:#185FA5}
+.btn-p:hover{background:#0C447C}
+.btn-d{background:#A32D2D;color:#fff;border-color:#A32D2D}
+
+#decBox{padding:.75rem 1rem;border-radius:8px;border:.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:12px;margin-bottom:.85rem;transition:background .2s,border-color .2s}
+#decIcon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+#decTitle{font-size:14px;font-weight:500}
+#decDesc{font-size:11px;color:var(--color-text-secondary);margin-top:1px}
+#decResid{font-size:12px;font-weight:500;text-align:right;margin-left:auto}
+
+#evLog{max-height:90px;overflow-y:auto;font-size:11px}
+.le{display:flex;gap:8px;padding:3px 0;border-bottom:.5px solid var(--color-border-tertiary);color:var(--color-text-secondary)}
+.le:last-child{border-bottom:none}
+.lt{color:var(--color-text-tertiary);min-width:34px}
+</style>
+
+<h2 class="sr-only" style="position:absolute;left:-9999px">12-831 digital twin pipeline dashboard with live simulation</h2>
+
+<div style="padding:1.25rem 0">
+
+<div class="sl">Pipeline — click any stage</div>
+<div class="pipe" id="pipeEl">
+  <div class="ps active" style="background:#E6F1FB" data-panel="pData" onclick="switchPipe(this)"><div class="ps-t" style="color:#0C447C">Data discovery</div><div class="ps-s" style="color:#185FA5">108 runs</div></div>
+  <div class="pa">›</div>
+  <div class="ps" style="background:#E1F5EE" data-panel="pAlign" onclick="switchPipe(this)"><div class="ps-t" style="color:#085041">Signal align</div><div class="ps-s" style="color:#0F6E56">25 Hz sync</div></div>
+  <div class="pa">›</div>
+  <div class="ps" style="background:#EEEDFE" data-panel="pFeat" onclick="switchPipe(this)"><div class="ps-t" style="color:#3C3489">Feature windows</div><div class="ps-s" style="color:#534AB7">1-sec windows</div></div>
+  <div class="pa">›</div>
+  <div class="ps" style="background:#FAEEDA" data-panel="pTwin" onclick="switchPipe(this)"><div class="ps-t" style="color:#633806">Digital twin</div><div class="ps-s" style="color:#854F0B">RF regressor</div></div>
+  <div class="pa">›</div>
+  <div class="ps" style="background:#FAECE7" data-panel="pClass" onclick="switchPipe(this)"><div class="ps-t" style="color:#712B13">Classification</div><div class="ps-s" style="color:#993C1D">80% accuracy</div></div>
+  <div class="pa">›</div>
+  <div class="ps" style="background:#EAF3DE" data-panel="pDec" onclick="switchPipe(this)"><div class="ps-t" style="color:#27500A">Decision logic</div><div class="ps-s" style="color:#3B6D11">4 actions</div></div>
+  <div class="pa">›</div>
+  <div class="ps" style="background:#E6F1FB;border-color:#185FA5;border-width:2px" data-panel="pSim" onclick="switchPipe(this)"><div class="ps-t" style="color:#0C447C">Live simulation</div><div class="ps-s" style="color:#185FA5">run it now</div></div>
+</div>
+
+<div id="pData" class="panel active">
+  <div class="mg">
+    <div class="mc"><div class="mc-l">Total runs</div><div class="mc-v">108</div><div class="mc-s">0 broken</div></div>
+    <div class="mc"><div class="mc-l">Materials</div><div class="mc-v">2</div><div class="mc-s">Al ½in · Al ⅜in</div></div>
+    <div class="mc"><div class="mc-l">Conditions</div><div class="mc-v">12</div><div class="mc-s">per material</div></div>
+    <div class="mc"><div class="mc-l">Runs / condition</div><div class="mc-v">3</div><div class="mc-s">replicated</div></div>
+    <div class="mc"><div class="mc-l">Experiment groups</div><div class="mc-v">5</div><div class="mc-s">placement,speed…</div></div>
+  </div>
+  <div class="row2">
+    <div class="card">
+      <div class="sl">Condition groups</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span class="badge b-bl">baseline</span><span style="font-size:12px;color:var(--color-text-secondary)">unloaded track</span></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span class="badge b-lo">loaded</span><span style="font-size:12px;color:var(--color-text-secondary)">various load/placement</span></div>
+      <div class="sl">Experiment groups</div>
+      <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.9">baseline · load_distribution · placement_test · speed_test · train_loading</div>
+    </div>
+    <div class="card">
+      <div class="sl">Run distribution by load</div>
+      <div class="sr"><div class="sl2">Baseline (0 kg)</div><div class="sbw"><div class="sb" style="width:22%;background:#185FA5"></div></div><div class="sv">~18</div></div>
+      <div class="sr"><div class="sl2">0.5 kg ea peg</div><div class="sbw"><div class="sb" style="width:11%;background:#1D9E75"></div></div><div class="sv">~9</div></div>
+      <div class="sr"><div class="sl2">1.5 kg left pegs</div><div class="sbw"><div class="sb" style="width:11%;background:#1D9E75"></div></div><div class="sv">~9</div></div>
+      <div class="sr"><div class="sl2">Half-loaded train</div><div class="sbw"><div class="sb" style="width:11%;background:#EF9F27"></div></div><div class="sv">~9</div></div>
+      <div class="sr"><div class="sl2">Fully-loaded train</div><div class="sbw"><div class="sb" style="width:11%;background:#E24B4A"></div></div><div class="sv">~9</div></div>
+      <div class="sr"><div class="sl2">Speed/placement</div><div class="sbw"><div class="sb" style="width:45%;background:#7F77DD"></div></div><div class="sv">~54</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="pAlign" class="panel">
+  <div class="mg">
+    <div class="mc"><div class="mc-l">Arduino rate</div><div class="mc-v">~10 Hz</div><div class="mc-s">motion+context</div></div>
+    <div class="mc"><div class="mc-l">DAQ rate</div><div class="mc-v">1000 Hz</div><div class="mc-s">accelerometers</div></div>
+    <div class="mc"><div class="mc-l">Aligned rate</div><div class="mc-v">25 Hz</div><div class="mc-s">target sync</div></div>
+    <div class="mc"><div class="mc-l">DAQ sensors</div><div class="mc-v">g4, g5</div><div class="mc-s">vibration channels</div></div>
+  </div>
+  <div class="card">
+    <div class="sl">Aligned signal preview</div>
+    <div style="display:flex;align-items:center;gap:8px;margin:.5rem 0 .75rem">
+      <label style="font-size:12px;color:var(--color-text-secondary)">Speed</label>
+      <input type="range" min="0.5" max="3" step="0.25" value="1.25" id="aSpeed" oninput="updateAlign()">
+      <span id="aSpeedV" style="font-size:12px;min-width:50px">1.25 fps</span>
+      <label style="font-size:12px;color:var(--color-text-secondary)">Load</label>
+      <input type="range" min="0" max="4" step="0.5" value="2" id="aLoad" oninput="updateAlign()">
+      <span id="aLoadV" style="font-size:12px;min-width:40px">2.0 kg</span>
+    </div>
+    <div style="position:relative;height:150px"><canvas id="alignC" role="img" aria-label="Simulated aligned DAQ vibration signals g4 g5 and g_mean at 25 Hz"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="sl">Key aligned columns</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+      <div class="fi">time_s <span>timestamp</span></div><div class="fi">g4 / g5 <span>DAQ accel (g)</span></div>
+      <div class="fi">pos_ft <span>position (ft)</span></div><div class="fi">vel_fps <span>velocity (fps)</span></div>
+      <div class="fi">phase <span>ACCEL/CRUISE/DECEL</span></div><div class="fi">g_mean <span>avg vibration</span></div>
+      <div class="fi">g_diff <span>channel diff</span></div><div class="fi">condition_group <span>baseline/loaded</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="pFeat" class="panel">
+  <div class="mg">
+    <div class="mc"><div class="mc-l">Window size</div><div class="mc-v">1 sec</div><div class="mc-s">non-overlapping</div></div>
+    <div class="mc"><div class="mc-l">Samples/window</div><div class="mc-v">25</div><div class="mc-s">at 25 Hz</div></div>
+    <div class="mc"><div class="mc-l">Total windows</div><div class="mc-v">4,239</div><div class="mc-s">all runs</div></div>
+    <div class="mc"><div class="mc-l">Feature columns</div><div class="mc-v">13+</div><div class="mc-s">per window</div></div>
+  </div>
+  <div class="row2">
+    <div class="card">
+      <div class="sl">Vibration features</div>
+      <div class="fi">g_rms <span>RMS vibration</span></div>
+      <div class="fi">g_mean_mean <span>mean of g_mean</span></div>
+      <div class="fi">g_mean_std <span>std dev</span></div>
+      <div class="fi">g_mean_p95 <span>95th percentile</span></div>
+      <div class="fi">g_diff_mean <span>channel diff mean</span></div>
+      <div class="fi">g_diff_std <span>channel diff std</span></div>
+    </div>
+    <div class="card">
+      <div class="sl">Context features</div>
+      <div class="fi">speed_fps <span>train speed</span></div>
+      <div class="fi">total_load_kg_est <span>estimated load</span></div>
+      <div class="fi">material_type <span>aluminum/steel</span></div>
+      <div class="fi">phase <span>motion phase</span></div>
+      <div class="fi">window_count <span>window index</span></div>
+      <div class="fi">run_id <span>group key (CV)</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="pTwin" class="panel">
+  <div class="mg">
+    <div class="mc"><div class="mc-l">Model</div><div class="mc-v" style="font-size:14px">RF Regressor</div><div class="mc-s">RandomForest</div></div>
+    <div class="mc"><div class="mc-l">Validation</div><div class="mc-v" style="font-size:14px">GroupKFold</div><div class="mc-s">by run_id</div></div>
+    <div class="mc"><div class="mc-l">Target</div><div class="mc-v" style="font-size:14px">g_rms</div><div class="mc-s">expected vibration</div></div>
+    <div class="mc"><div class="mc-l">Key output</div><div class="mc-v" style="font-size:14px">abs_residual</div><div class="mc-s">measured − expected</div></div>
+  </div>
+  <div class="card">
+    <div class="sl">Measured vs twin expected — interactive</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:.5rem 0 .75rem">
+      <label style="font-size:12px;color:var(--color-text-secondary)">Load</label>
+      <input type="range" min="0" max="4" step="0.5" value="0" id="tLoad" oninput="updateTwin()">
+      <span id="tLoadV" style="font-size:12px;min-width:40px">0.0 kg</span>
+      <label style="font-size:12px;color:var(--color-text-secondary)">Speed</label>
+      <input type="range" min="0.5" max="3" step="0.25" value="1.25" id="tSpeed" oninput="updateTwin()">
+      <span id="tSpeedV" style="font-size:12px;min-width:50px">1.25 fps</span>
+      <label style="font-size:12px;color:var(--color-text-secondary)">Noise</label>
+      <input type="range" min="0" max="1" step="0.05" value="0.2" id="tNoise" oninput="updateTwin()">
+      <span id="tNoiseV" style="font-size:12px;min-width:30px">0.20</span>
+    </div>
+    <div class="mg" style="margin-bottom:.75rem">
+      <div class="mc"><div class="mc-l">Expected</div><div class="mc-v" id="tExp">0.040</div><div class="mc-s">g (twin)</div></div>
+      <div class="mc"><div class="mc-l">Measured</div><div class="mc-v" id="tMeas">0.050</div><div class="mc-s">g (DAQ)</div></div>
+      <div class="mc"><div class="mc-l">|Residual|</div><div class="mc-v" id="tResid">0.010</div><div class="mc-s">deviation</div></div>
+    </div>
+    <div style="position:relative;height:170px"><canvas id="twinC" role="img" aria-label="Scatter plot of measured vs expected vibration coloured by condition group"></canvas></div>
+  </div>
+</div>
+
+<div id="pClass" class="panel">
+  <div class="mg">
+    <div class="mc"><div class="mc-l">Overall accuracy</div><div class="mc-v">80%</div><div class="mc-s">binary threshold 15%</div></div>
+    <div class="mc"><div class="mc-l">Loaded recall</div><div class="mc-v">85%</div><div class="mc-s">3290/3889</div></div>
+    <div class="mc"><div class="mc-l">Baseline recall</div><div class="mc-v">26%</div><div class="mc-s">class imbalance</div></div>
+    <div class="mc"><div class="mc-l">Weighted F1</div><div class="mc-v">0.83</div></div>
+  </div>
+  <div class="row2">
+    <div class="card">
+      <div class="sl">Binary confusion matrix</div>
+      <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:8px">
+        <thead><tr><th style="padding:5px;text-align:left;color:var(--color-text-tertiary)">True ↓ Pred →</th><th style="padding:5px;text-align:center;background:#E6F1FB;color:#0C447C;border-radius:4px">baseline</th><th style="padding:5px;text-align:center;background:#FAEEDA;color:#633806;border-radius:4px">loaded</th></tr></thead>
+        <tbody>
+          <tr><td style="padding:5px;font-weight:500">baseline (350)</td><td style="padding:5px;text-align:center;background:#E6F1FB;color:#0C447C;font-weight:500">90</td><td style="padding:5px;text-align:center;background:#FCEBEB;color:#791F1F">260</td></tr>
+          <tr><td style="padding:5px;font-weight:500">loaded (3889)</td><td style="padding:5px;text-align:center;background:#FCEBEB;color:#791F1F">599</td><td style="padding:5px;text-align:center;background:#EAF3DE;color:#27500A;font-weight:500">3290</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="sl">Metrics breakdown</div>
+      <div class="sr"><div class="sl2">Loaded precision</div><div class="sbw"><div class="sb" style="width:93%;background:#1D9E75"></div></div><div class="sv">0.93</div></div>
+      <div class="sr"><div class="sl2">Loaded recall</div><div class="sbw"><div class="sb" style="width:85%;background:#1D9E75"></div></div><div class="sv">0.85</div></div>
+      <div class="sr"><div class="sl2">Baseline precision</div><div class="sbw"><div class="sb" style="width:13%;background:#E24B4A"></div></div><div class="sv">0.13</div></div>
+      <div class="sr"><div class="sl2">Baseline recall</div><div class="sbw"><div class="sb" style="width:26%;background:#E24B4A"></div></div><div class="sv">0.26</div></div>
+      <div class="sr"><div class="sl2">Weighted F1</div><div class="sbw"><div class="sb" style="width:83%;background:#7F77DD"></div></div><div class="sv">0.83</div></div>
+      <div class="sr"><div class="sl2">Macro avg F1</div><div class="sbw"><div class="sb" style="width:53%;background:#7F77DD"></div></div><div class="sv">0.53</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="pDec" class="panel">
+  <div class="mg">
+    <div class="mc"><div class="mc-l">Warning threshold</div><div class="mc-v">0.05g</div><div class="mc-s">adjust speed</div></div>
+    <div class="mc"><div class="mc-l">Critical threshold</div><div class="mc-v">0.10g</div><div class="mc-s">stop</div></div>
+    <div class="mc"><div class="mc-l">False alarm rate</div><div class="mc-v">~15%</div><div class="mc-s">baseline flagged</div></div>
+    <div class="mc"><div class="mc-l">Actions</div><div class="mc-v">4</div><div class="mc-s">continue→stop</div></div>
+  </div>
+  <div class="card">
+    <div class="sl">Try the decision engine</div>
+    <div style="display:flex;align-items:center;gap:8px;margin:.5rem 0">
+      <label style="font-size:12px;color:var(--color-text-secondary)">|Residual| (g)</label>
+      <input type="range" min="0" max="0.15" step="0.005" value="0.03" id="dResid" oninput="updateDecPanel()">
+      <span id="dResidV" style="font-size:12px;min-width:48px">0.030g</span>
+      <label style="font-size:12px;color:var(--color-text-secondary)">Condition</label>
+      <select id="dCond" onchange="updateDecPanel()"><option value="baseline">baseline</option><option value="loaded" selected>loaded</option></select>
+    </div>
+    <div id="dResult" style="padding:.75rem 1rem;border-radius:8px;border:.5px solid var(--color-border-tertiary);margin-top:.5rem">
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:4px">Decision</div>
+      <div id="dAction" style="font-size:18px;font-weight:500"></div>
+      <div id="dReason" style="font-size:11px;color:var(--color-text-secondary);margin-top:3px"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sl">Decision logic table</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:.5px solid var(--color-border-tertiary)"><div style="flex:2;font-size:12px;color:var(--color-text-secondary)">Any, |resid| &lt; 0.05g</div><div style="flex:1"><span class="badge b-co">continue</span></div></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:.5px solid var(--color-border-tertiary)"><div style="flex:2;font-size:12px;color:var(--color-text-secondary)">Loaded, 0.05 ≤ |resid| &lt; 0.08g</div><div style="flex:1"><span class="badge b-ad">adjust speed</span></div></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:.5px solid var(--color-border-tertiary)"><div style="flex:2;font-size:12px;color:var(--color-text-secondary)">Loaded, 0.08 ≤ |resid| &lt; 0.10g</div><div style="flex:1"><span class="badge b-sl">slow down</span></div></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 0"><div style="flex:2;font-size:12px;color:var(--color-text-secondary)">Any, |resid| ≥ 0.10g</div><div style="flex:1"><span class="badge b-st">stop</span></div></div>
+  </div>
+</div>
+
+<div id="pSim" class="panel">
+  <div class="card">
+    <div class="sl">Simulation controls</div>
+    <div class="cr">
+      <div class="cg"><label>Speed</label><input type="range" min="0.5" max="3" step="0.25" value="1.25" id="sSpeed" oninput="onSCtrl()"><span id="sSpeedV">1.25 fps</span></div>
+      <div class="cg"><label>Load (kg)</label><input type="range" min="0" max="4" step="0.5" value="2" id="sLoad" oninput="onSCtrl()"><span id="sLoadV">2.0 kg</span></div>
+      <div class="cg"><label>Material</label><select id="sMat"><option value="al05">Al ½in</option><option value="al038">Al ⅜in</option></select></div>
+      <div class="cg"><label>Condition</label><select id="sCond"><option value="baseline">baseline</option><option value="loaded" selected>loaded</option></select></div>
+      <button class="btn-p" id="btnStart" onclick="toggleSim()">&#9654; Start</button>
+      <button id="btnReset" onclick="resetSim()">&#8635; Reset</button>
+    </div>
+  </div>
+
+  <div class="card" style="padding:.85rem 1rem">
+    <div class="sl">Live track view</div>
+    <div id="trackWrap"><canvas id="trackCanvas"></canvas></div>
+  </div>
+
+  <div id="decBox" style="padding:.75rem 1rem;border-radius:8px;border:.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:12px;margin-bottom:.85rem;transition:background .2s,border-color .2s">
+    <div id="decIcon" style="width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--color-background-secondary);color:var(--color-text-secondary)">—</div>
+    <div style="flex:1">
+      <div id="decTitle" style="font-size:14px;font-weight:500;color:var(--color-text-primary)">Idle — press Start</div>
+      <div id="decDesc" style="font-size:11px;color:var(--color-text-secondary);margin-top:1px">Configure parameters and run the simulation</div>
+    </div>
+    <div id="decResid" style="font-size:12px;font-weight:500;color:var(--color-text-secondary)">—</div>
+  </div>
+
+  <div class="mg">
+    <div class="mc"><div class="mc-l">Position</div><div class="mc-v" id="mPos">0.00 ft</div><div class="mc-s">along track</div></div>
+    <div class="mc"><div class="mc-l">Measured vib.</div><div class="mc-v" id="mVib">—</div><div class="mc-s">g RMS (DAQ)</div></div>
+    <div class="mc"><div class="mc-l">Twin expected</div><div class="mc-v" id="mExp">—</div><div class="mc-s">g RMS (model)</div></div>
+    <div class="mc"><div class="mc-l">|Residual|</div><div class="mc-v" id="mResid">—</div><div class="mc-s">deviation</div></div>
+  </div>
+
+  <div class="row2">
+    <div class="card" style="padding:.85rem">
+      <div class="sl">Vibration signal</div>
+      <div style="position:relative;height:150px"><canvas id="vibC" role="img" aria-label="Real-time measured vs twin expected vibration signal">Measured and expected vibration over time.</canvas></div>
+    </div>
+    <div class="card" style="padding:.85rem">
+      <div class="sl">Residual over time</div>
+      <div style="position:relative;height:150px"><canvas id="residC" role="img" aria-label="Absolute residual over time with warning and critical threshold lines">Residual with warning at 0.05g and critical at 0.10g.</canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sl">Event log</div>
+    <div id="evLog"><div class="le"><div class="lt">—</div><div>Simulation not started</div></div></div>
+  </div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+var alignChart, twinChart, vibChart, residChart;
+var simRunning=false, animId=null, lastT=null, simPos=0, simVel=0, simT=0, simAccum=0;
+var lastDec=null;
+var vibH=[], expH=[], residH=[], timeH=[];
+var TRACK_LEN=12, WARN=0.05, SLOW=0.08, CRIT=0.10, MAX_PTS=60;
+
+function switchPipe(el){
+  document.querySelectorAll('.ps').forEach(function(s){s.classList.remove('active')});
+  el.classList.add('active');
+  var panel=el.getAttribute('data-panel');
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
+  document.getElementById(panel).classList.add('active');
+  if(panel==='pAlign'&&!alignChart)initAlignChart();
+  if(panel==='pTwin'&&!twinChart)initTwinChart();
+  if(panel==='pDec')updateDecPanel();
+  if(panel==='pSim'){if(!vibChart)initSimCharts();drawTrack(simPos);}
+}
+
+function gSig(n,speed,load,noise){
+  var a=[],base=0.03+load*0.012+speed*0.008;
+  for(var i=0;i<n;i++){var t=i/25;a.push(+(base+0.015*Math.sin(2*Math.PI*speed*t)+(Math.random()-.5)*noise*0.04).toFixed(4));}
+  return a;
+}
+
+function initAlignChart(){
+  var ctx=document.getElementById('alignC').getContext('2d');
+  var labels=Array.from({length:50},function(_,i){return (i/25).toFixed(2)});
+  alignChart=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[
+    {label:'g4',data:gSig(50,1.25,2,.3),borderColor:'#185FA5',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3},
+    {label:'g5',data:gSig(50,1.25,2,.25),borderColor:'#1D9E75',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3},
+    {label:'g_mean',data:gSig(50,1.25,2,.15),borderColor:'#7F77DD',backgroundColor:'transparent',borderWidth:2,borderDash:[4,3],pointRadius:0,tension:.3}
+  ]},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:true,labels:{boxWidth:8,font:{size:10}}}},scales:{x:{ticks:{maxTicksLimit:6,font:{size:9}},title:{display:true,text:'time (s)',font:{size:10}}},y:{ticks:{font:{size:9}},title:{display:true,text:'g',font:{size:10}}}}}});
+}
+
+function updateAlign(){
+  var s=+document.getElementById('aSpeed').value,l=+document.getElementById('aLoad').value;
+  document.getElementById('aSpeedV').textContent=s.toFixed(2)+' fps';
+  document.getElementById('aLoadV').textContent=l.toFixed(1)+' kg';
+  if(!alignChart)return;
+  alignChart.data.datasets[0].data=gSig(50,s,l,.3);
+  alignChart.data.datasets[1].data=gSig(50,s,l,.25);
+  alignChart.data.datasets[2].data=gSig(50,s,l,.15);
+  alignChart.update('none');
+}
+
+function initTwinChart(){
+  var ctx=document.getElementById('twinC').getContext('2d');
+  var bd=Array.from({length:60},function(){var x=Math.random()*.12+.02;return{x:+x.toFixed(3),y:+(x+(Math.random()-.5)*.02).toFixed(3)};});
+  var ld=Array.from({length:120},function(){var x=Math.random()*.18+.04;return{x:+x.toFixed(3),y:+(x+(Math.random()-.5)*.04).toFixed(3)};});
+  twinChart=new Chart(ctx,{type:'scatter',data:{datasets:[
+    {label:'baseline',data:bd,backgroundColor:'rgba(24,95,165,.5)',pointRadius:3},
+    {label:'loaded',data:ld,backgroundColor:'rgba(186,117,23,.4)',pointRadius:3},
+    {label:'y=x',data:[{x:0,y:0},{x:.25,y:.25}],type:'line',borderColor:'#888780',borderDash:[4,3],borderWidth:1.5,pointRadius:0,backgroundColor:'transparent'}
+  ]},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:true,labels:{boxWidth:8,font:{size:10}}}},scales:{x:{title:{display:true,text:'measured g_rms',font:{size:10}},ticks:{font:{size:9}}},y:{title:{display:true,text:'expected (twin)',font:{size:10}},ticks:{font:{size:9}}}}}});
+  updateTwin();
+}
+
+function updateTwin(){
+  var l=+document.getElementById('tLoad').value,s=+document.getElementById('tSpeed').value,n=+document.getElementById('tNoise').value;
+  document.getElementById('tLoadV').textContent=l.toFixed(1)+' kg';
+  document.getElementById('tSpeedV').textContent=s.toFixed(2)+' fps';
+  document.getElementById('tNoiseV').textContent=n.toFixed(2);
+  var exp=+(0.03+l*.012+s*.008).toFixed(3);
+  var meas=+(exp+(Math.random()-.5)*n*.06).toFixed(3);
+  document.getElementById('tExp').textContent=exp.toFixed(3);
+  document.getElementById('tMeas').textContent=Math.max(0,meas).toFixed(3);
+  document.getElementById('tResid').textContent=Math.abs(meas-exp).toFixed(3);
+}
+
+function updateDecPanel(){
+  var r=+document.getElementById('dResid').value,c=document.getElementById('dCond').value;
+  document.getElementById('dResidV').textContent=r.toFixed(3)+'g';
+  var action,reason,bg,col;
+  if(r>=CRIT){action='STOP';reason='|Residual| >= critical (0.10g)';bg='#FCEBEB';col='#791F1F';}
+  else if(c==='loaded'&&r>=SLOW){action='Slow down';reason='Loaded, residual near critical';bg='#FAECE7';col='#712B13';}
+  else if(c==='loaded'&&r>=WARN){action='Adjust speed';reason='Loaded, elevated residual';bg='#FAEEDA';col='#633806';}
+  else{action='Continue';reason='|Residual| below warning threshold';bg='#EAF3DE';col='#27500A';}
+  var el=document.getElementById('dResult');
+  el.style.background=bg;el.style.borderColor=col;
+  document.getElementById('dAction').textContent=action;
+  document.getElementById('dAction').style.color=col;
+  document.getElementById('dReason').textContent=reason;
+}
+
+function initSimCharts(){
+  vibChart=new Chart(document.getElementById('vibC').getContext('2d'),{type:'line',data:{labels:[],datasets:[
+    {label:'Measured',data:[],borderColor:'#E24B4A',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3},
+    {label:'Twin expected',data:[],borderColor:'#185FA5',backgroundColor:'transparent',borderWidth:1.5,borderDash:[4,3],pointRadius:0,tension:.3}
+  ]},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:true,labels:{boxWidth:8,font:{size:10}}}},scales:{x:{ticks:{maxTicksLimit:5,font:{size:9}},title:{display:true,text:'time (s)',font:{size:10}}},y:{ticks:{font:{size:9}},title:{display:true,text:'g',font:{size:10}},min:0}}}});
+  residChart=new Chart(document.getElementById('residC').getContext('2d'),{type:'line',data:{labels:[],datasets:[
+    {label:'|Residual|',data:[],borderColor:'#7F77DD',backgroundColor:'rgba(127,119,221,.1)',fill:true,borderWidth:1.5,pointRadius:0,tension:.3},
+    {label:'Warn 0.05g',data:[],borderColor:'#BA7517',borderDash:[4,3],borderWidth:1,pointRadius:0},
+    {label:'Crit 0.10g',data:[],borderColor:'#A32D2D',borderDash:[4,3],borderWidth:1,pointRadius:0}
+  ]},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:true,labels:{boxWidth:8,font:{size:10}}}},scales:{x:{ticks:{maxTicksLimit:5,font:{size:9}},title:{display:true,text:'time (s)',font:{size:10}}},y:{ticks:{font:{size:9}},title:{display:true,text:'|resid| (g)',font:{size:10}},min:0,max:.15}}}});
+}
+
+function getSP(){return{speed:+document.getElementById('sSpeed').value,load:+document.getElementById('sLoad').value,mat:document.getElementById('sMat').value,cond:document.getElementById('sCond').value};}
+function onSCtrl(){var p=getSP();document.getElementById('sSpeedV').textContent=p.speed.toFixed(2)+' fps';document.getElementById('sLoadV').textContent=p.load.toFixed(1)+' kg';}
+
+function expVib(p){return(0.028+p.load*.013+p.speed*.009)*(p.mat==='al038'?1.15:1.0);}
+function measVib(exp,p,ph){var pm=ph==='ACCEL'?1.2:ph==='DECEL'?1.1:1.0,noise=p.cond==='loaded'?.035:.012;return Math.max(0,exp*pm+(Math.random()-.5)*2*noise*pm);}
+function getPhase(pos){return pos<2?'ACCEL':pos>TRACK_LEN-2?'DECEL':'CRUISE';}
+function getDec(r,c){if(r>=CRIT)return'stop';if(c==='loaded'&&r>=SLOW)return'slow';if(c==='loaded'&&r>=WARN)return'adjust';return'continue';}
+
+var decCfg={continue:{title:'Continue',desc:'Nominal — residual within threshold',icon:'OK',bg:'#EAF3DE',bc:'#639922',tc:'#27500A',ib:'#C0DD97'},adjust:{title:'Adjust speed',desc:'Loaded: elevated residual',icon:'! ',bg:'#FAEEDA',bc:'#BA7517',tc:'#633806',ib:'#FAC775'},slow:{title:'Slow down',desc:'Loaded: residual near critical',icon:'!!',bg:'#FAECE7',bc:'#D85A30',tc:'#712B13',ib:'#F5C4B3'},stop:{title:'STOP',desc:'Critical residual — halt immediately',icon:'XX',bg:'#FCEBEB',bc:'#A32D2D',tc:'#791F1F',ib:'#F7C1C1'}};
+
+function applyDecision(action,r){
+  var c=decCfg[action];
+  var box=document.getElementById('decBox');
+  box.style.background=c.bg;box.style.borderColor=c.bc;
+  var ic=document.getElementById('decIcon');
+  ic.style.background=c.ib;ic.style.color=c.tc;ic.textContent=c.icon;
+  document.getElementById('decTitle').textContent=c.title;document.getElementById('decTitle').style.color=c.tc;
+  document.getElementById('decDesc').textContent=c.desc;
+  document.getElementById('decResid').textContent='|resid| '+r.toFixed(4)+'g';document.getElementById('decResid').style.color=c.tc;
+  if(action!==lastDec){logEv(c.title+' — |resid|='+r.toFixed(4)+'g',action);lastDec=action;}
+}
+
+function logEv(msg,type){
+  var log=document.getElementById('evLog');
+  var cols={continue:'#27500A',adjust:'#633806',slow:'#712B13',stop:'#791F1F',info:'var(--color-text-secondary)'};
+  var e=document.createElement('div');e.className='le';
+  e.innerHTML='<div class="lt">'+simT.toFixed(1)+'s</div><div style="color:'+( cols[type]||cols.info)+'">'+msg+'</div>';
+  log.insertBefore(e,log.firstChild);
+  while(log.children.length>20)log.removeChild(log.lastChild);
+}
+
+function drawTrack(pos){
+  var tc=document.getElementById('trackCanvas');
+  var wrap=document.getElementById('trackWrap');
+  var W=wrap.clientWidth||600,H=120;
+  tc.width=W;tc.height=H;
+  var ctx=tc.getContext('2d');
+  var isDark=matchMedia('(prefers-color-scheme:dark)').matches;
+  var trackY=H*.62,margin=36,tLen=W-margin*2;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=isDark?'#3C3489':'#D3D1C7';
+  for(var i=0;i<=22;i++){var sx=margin+(i/22)*tLen;ctx.fillRect(sx-2.5,trackY-9,5,18);}
+  ctx.fillStyle=isDark?'#B4B2A9':'#888780';
+  ctx.fillRect(margin,trackY-5,tLen,3);ctx.fillRect(margin,trackY+3,tLen,3);
+  ctx.fillStyle='rgba(24,95,165,.1)';ctx.fillRect(margin,trackY-26,(2/TRACK_LEN)*tLen,52);
+  ctx.fillStyle='rgba(163,45,45,.1)';ctx.fillRect(margin+((TRACK_LEN-2)/TRACK_LEN)*tLen,trackY-26,(2/TRACK_LEN)*tLen,52);
+  ctx.font='9px var(--font-sans)';
+  ctx.fillStyle=isDark?'#B5D4F4':'#185FA5';ctx.fillText('ACCEL',margin+2,trackY-14);
+  ctx.fillStyle=isDark?'#F09595':'#993C1D';ctx.fillText('DECEL',margin+((TRACK_LEN-2)/TRACK_LEN)*tLen+2,trackY-14);
+  ctx.fillStyle=isDark?'#9FE1CB':'#0F6E56';ctx.fillText('CRUISE',margin+tLen/2-18,trackY-14);
+  var tx=margin+(pos/TRACK_LEN)*tLen,tW=46,tH=20,tY=trackY-tH-4;
+  var p=getSP(),action=simRunning&&residH.length?getDec(residH[residH.length-1],p.cond):'continue';
+  var tCol={continue:'#185FA5',adjust:'#BA7517',slow:'#D85A30',stop:'#A32D2D'}[action]||'#185FA5';
+  ctx.fillStyle=tCol;ctx.beginPath();ctx.roundRect(tx-tW/2,tY,tW,tH,3);ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.3)';ctx.fillRect(tx-tW/2+3,tY+4,9,9);ctx.fillRect(tx-tW/2+15,tY+4,7,9);
+  ctx.fillStyle=isDark?'#444441':'#5F5E5A';
+  [-14,-4,6,16].forEach(function(dx){ctx.beginPath();ctx.arc(tx-tW/2+10+dx,trackY,4,0,Math.PI*2);ctx.fill();});
+  ctx.font='9px var(--font-sans)';ctx.fillStyle='rgba(255,255,255,.85)';ctx.textAlign='center';
+  if(simRunning)ctx.fillText(p.speed.toFixed(2)+'fps',tx,tY+tH-3);
+  ctx.textAlign='left';
+  ctx.strokeStyle=isDark?'#888780':'#B4B2A9';ctx.lineWidth=.5;ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(tx,trackY+6);ctx.lineTo(tx,H-8);ctx.stroke();ctx.setLineDash([]);
+  ctx.font='9px var(--font-sans)';ctx.fillStyle='var(--color-text-tertiary)';ctx.textAlign='center';
+  ctx.fillText(pos.toFixed(1)+'ft',tx,H-2);ctx.textAlign='left';
+  if(simRunning&&vibH.length){
+    var vib=vibH[vibH.length-1],exp=expH[expH.length-1];
+    var bMH=28;
+    ctx.fillStyle='rgba(226,75,74,.7)';ctx.fillRect(tx+tW/2+3,tY+tH-Math.min(bMH,vib*200),5,Math.min(bMH,vib*200));
+    ctx.fillStyle='rgba(24,95,165,.7)';ctx.fillRect(tx+tW/2+11,tY+tH-Math.min(bMH,exp*200),5,Math.min(bMH,exp*200));
+  }
+}
+
+function pushData(t,vib,exp,resid){
+  var tl=t.toFixed(1);
+  vibH.push(vib);expH.push(exp);residH.push(resid);timeH.push(tl);
+  if(vibH.length>MAX_PTS){vibH.shift();expH.shift();residH.shift();timeH.shift();}
+  vibChart.data.labels=timeH;
+  vibChart.data.datasets[0].data=vibH.map(function(v){return +v.toFixed(4);});
+  vibChart.data.datasets[1].data=expH.map(function(v){return +v.toFixed(4);});
+  var n=timeH.length;
+  residChart.data.labels=timeH;
+  residChart.data.datasets[0].data=residH.map(function(v){return +v.toFixed(4);});
+  residChart.data.datasets[1].data=Array(n).fill(WARN);
+  residChart.data.datasets[2].data=Array(n).fill(CRIT);
+  vibChart.update('none');residChart.update('none');
+}
+
+function simStep(dt){
+  var p=getSP();
+  simT+=dt;
+  var ar=1.5;
+  if(simPos<2)simVel=Math.min(simVel+ar*dt,p.speed);
+  else if(simPos>TRACK_LEN-2)simVel=Math.max(simVel-ar*dt,.1);
+  else simVel=p.speed;
+  simPos+=simVel*dt;
+  if(simPos>=TRACK_LEN){simPos=TRACK_LEN;stopSim();logEv('Run complete — end of track','info');drawTrack(simPos);return;}
+  var ph=getPhase(simPos);
+  var exp=expVib(p),vib=measVib(exp,p,ph),resid=Math.abs(vib-exp);
+  var action=getDec(resid,p.cond);
+  pushData(simT,vib,exp,resid);
+  applyDecision(action,resid);
+  document.getElementById('mPos').textContent=simPos.toFixed(2)+' ft';
+  document.getElementById('mVib').textContent=vib.toFixed(4)+'g';
+  document.getElementById('mExp').textContent=exp.toFixed(4)+'g';
+  document.getElementById('mResid').textContent=resid.toFixed(4)+'g';
+  drawTrack(simPos);
+}
+
+function loop(ts){
+  if(!simRunning)return;
+  if(lastT===null)lastT=ts;
+  simAccum+=(ts-lastT)/1000*1.5;lastT=ts;
+  while(simAccum>=.05){simStep(.05);simAccum-=.05;if(!simRunning)return;}
+  animId=requestAnimationFrame(loop);
+}
+
+function toggleSim(){if(simRunning){stopSim();}else{startSim();}}
+function startSim(){
+  if(simPos>=TRACK_LEN)resetSim();
+  simRunning=true;lastT=null;simAccum=0;
+  document.getElementById('btnStart').textContent='Pause';document.getElementById('btnStart').className='btn-d';
+  logEv('Started — '+getSP().cond+' @ '+getSP().speed.toFixed(2)+'fps, '+getSP().load.toFixed(1)+'kg','info');
+  animId=requestAnimationFrame(loop);
+}
+function stopSim(){
+  simRunning=false;if(animId)cancelAnimationFrame(animId);
+  document.getElementById('btnStart').textContent='&#9654; Start';document.getElementById('btnStart').className='btn-p';
+}
+function resetSim(){
+  stopSim();simPos=0;simVel=0;simT=0;simAccum=0;lastDec=null;
+  vibH=[];expH=[];residH=[];timeH=[];
+  if(vibChart){vibChart.data.labels=[];vibChart.data.datasets.forEach(function(d){d.data=[];});vibChart.update('none');}
+  if(residChart){residChart.data.labels=[];residChart.data.datasets.forEach(function(d){d.data=[];});residChart.update('none');}
+  document.getElementById('mPos').textContent='0.00 ft';
+  document.getElementById('mVib').textContent='—';document.getElementById('mExp').textContent='—';document.getElementById('mResid').textContent='—';
+  var box=document.getElementById('decBox');box.style.background='var(--color-background-primary)';box.style.borderColor='var(--color-border-tertiary)';
+  document.getElementById('decIcon').textContent='—';document.getElementById('decIcon').style.background='var(--color-background-secondary)';document.getElementById('decIcon').style.color='var(--color-text-secondary)';
+  document.getElementById('decTitle').textContent='Idle — press Start';document.getElementById('decTitle').style.color='var(--color-text-primary)';
+  document.getElementById('decDesc').textContent='Configure parameters and run the simulation';
+  document.getElementById('decResid').textContent='—';document.getElementById('decResid').style.color='var(--color-text-secondary)';
+  document.getElementById('evLog').innerHTML='<div class="le"><div class="lt">—</div><div>Simulation reset</div></div>';
+  drawTrack(0);
+}
+
+updateDecPanel();
+</script>
